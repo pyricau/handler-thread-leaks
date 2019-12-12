@@ -17,7 +17,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
 
         // This created dialog is never shown because we don't need to. We could show it as well,
-        // that's wouldn't change the problem.
+        // that wouldn't change the problem.
         val dialog = AlertDialog.Builder(this).create()
 
         // This dialog cancel listener has a reference to the activity. Most dialog listeners
@@ -40,6 +40,8 @@ class MainActivity : Activity() {
         Thread.sleep(100)
 
         // At this point the Message recycled by the HandlerThread is first in the Message pool.
+        // In this demo app the current thread (main)is the only active HandlerThread at this point
+        // so we're fairly confident nothing else will consume a Message from the pool.
 
         // Calling Dialog.setOnCancelListener() will obtain the first Message from the Message pool
         // and set its Message.obj field to the dialog cancel listener. It's the equivalent of:
