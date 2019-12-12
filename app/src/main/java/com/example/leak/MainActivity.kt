@@ -76,7 +76,7 @@ class MainActivity : Activity() {
         // already do that today. It's easy to forget.
         // f) [Devs] Implement a hack that sends an empty message to all idle handler threads.
         // Below if a hacky implementation that flushes all handler threads when the button is
-        // clicked.
+        // clicked, effectively making the existing leaks go away.
 
         findViewById<View>(R.id.flush_handler_threads).setOnClickListener {
             flushHandlerThreads()
@@ -108,9 +108,18 @@ class MainActivity : Activity() {
 
 
         private fun flushHandlerThreads() {
+            for (thread in listAllCurrentThreads()) {
+                if (thread is HandlerThread) {
+                    val handler = Handler(thread.looper)
+                    handler.sendMessage(handler.obtainMessage())
+                }
+            }
+        }
+
+        private fun listAllCurrentThreads(): Array<Thread?> {
             // https://stackoverflow.com/a/1323480
             var rootGroup = Thread.currentThread()
-                .threadGroup
+                .threadGroup!!
             var lookForRoot = true
             while (lookForRoot) {
                 val parentGroup = rootGroup.parent
@@ -124,12 +133,7 @@ class MainActivity : Activity() {
             while (rootGroup.enumerate(threads, true) == threads.size) {
                 threads = arrayOfNulls(threads.size * 2)
             }
-            for (thread in threads) {
-                if (thread is HandlerThread) {
-                    val handler = Handler(thread.looper)
-                    handler.sendMessage(handler.obtainMessage())
-                }
-            }
+            return threads
         }
     }
 
