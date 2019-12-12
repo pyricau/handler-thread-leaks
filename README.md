@@ -60,13 +60,10 @@ When a HandlerThread becomes idle, each dialog created after that has a chance o
 
 How can this be fixed? I can think of a few options:
 
-a) [AOSP] Figuring out why HandlerThread is keeping java local reference
-to the last recycled Message instance while waiting for nativePollOnce(), and fixing
+* a) [AOSP] Figuring out why HandlerThread is keeping java local reference to the last recycled Message instance while waiting for nativePollOnce(), and fixing
 that.
-b) [AOSP] Change the HandlerThread implementation to never recycle messages. Unlikely.
-c) [AOSP] Change the HandlerThread implementation to never stay idle for too long.
-d) [AOSP] Change dialog to recycle messages when dismissed. Unfortunately that wouldn't fix it
-since a dialog can be created without being shown (happens a lot)
-e) [Devs] Have developers clear out listeners when they're done with a dialog. Developers can
-already do that today. It's easy to forget to do it though (and sometimes impossible, e.g. when using libraries).
-f) [Devs] Implement a hack that sends an empty message to all idle handler threads. Here's how one can do that: https://github.com/pyricau/handler-thread-leaks/blob/master/app/src/main/java/com/example/leak/MainActivity.kt#L112
+* b) [AOSP] Change the HandlerThread implementation to never recycle messages. Unlikely.
+* c) [AOSP] Change the HandlerThread implementation to never stay idle for too long.
+* d) [AOSP] Change dialog to recycle messages when dismissed. Unfortunately that wouldn't fix it since a dialog can be created without being shown (happens a lot)
+* e) [Devs] Have developers clear out listeners when they're done with a dialog. Developers can already do that today. It's easy to forget to do it though (and sometimes impossible, e.g. when using libraries).
+* f) [Devs] Implement a hack that sends an empty message to all idle handler threads. Here's how one can do that: https://github.com/pyricau/handler-thread-leaks/blob/master/app/src/main/java/com/example/leak/MainActivity.kt#L112
