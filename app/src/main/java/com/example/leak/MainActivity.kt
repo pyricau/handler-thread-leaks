@@ -6,6 +6,7 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.view.View
 import java.util.concurrent.CountDownLatch
 
 
@@ -74,6 +75,12 @@ class MainActivity : Activity() {
         // e) [Devs] Have developers clear out listeners when they're done with a dialog. Developers can
         // already do that today. It's easy to forget.
         // f) [Devs] Implement a hack that sends an empty message to all idle handler threads.
+        // Below if a hacky implementation that flushes all handler threads when the button is
+        // clicked.
+
+        findViewById<View>(R.id.flush_handler_threads).setOnClickListener {
+            flushHandlerThreads()
+        }
     }
 
 
@@ -97,6 +104,32 @@ class MainActivity : Activity() {
             }, 100)
 
             return waitUntilLeakingRecycledMessage
+        }
+
+
+        private fun flushHandlerThreads() {
+            // https://stackoverflow.com/a/1323480
+            var rootGroup = Thread.currentThread()
+                .threadGroup
+            var lookForRoot = true
+            while (lookForRoot) {
+                val parentGroup = rootGroup.parent
+                if (parentGroup != null) {
+                    rootGroup = parentGroup
+                } else {
+                    lookForRoot = false
+                }
+            }
+            var threads = arrayOfNulls<Thread>(rootGroup.activeCount())
+            while (rootGroup.enumerate(threads, true) == threads.size) {
+                threads = arrayOfNulls(threads.size * 2)
+            }
+            for (thread in threads) {
+                if (thread is HandlerThread) {
+                    val handler = Handler(thread.looper)
+                    handler.sendMessage(handler.obtainMessage())
+                }
+            }
         }
     }
 
