@@ -1,0 +1,3 @@
+<resources>
+    <bool name="leak_canary_plumber_auto_install">false</bool>
+</resources>
